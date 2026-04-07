@@ -5,7 +5,7 @@ import {
   Play, Square, Save, Moon, Battery, 
   ShieldCheck, AlertTriangle, Timer, Activity, Zap 
 } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis, CartesianGrid } from 'recharts';
 import { useGaitSimulation } from '@/lib/hooks/useGaitSimulation';
 import { BlendingHeatmap } from '@/components/BlendingHeatmap';
 
@@ -77,15 +77,61 @@ export default function LiveSession() {
       <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* LEFT GRAPH */}
-        <div className="lg:col-span-3 duo-card">
-          <p className="text-[10px] font-black text-gray-400 mb-4 tracking-widest">LEFT_FOOT_16CH</p>
-          <div className="h-[400px]">
+        <div className="h-[400px] lg:col-span-3 duo-card overflow-hidden flex flex-col">
+          {/* Header: Internalized to the card padding */}
+          <div className="pt-4 px-4 flex justify-between items-end">
+            <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase">
+              Left_Foot_16CH_PSI
+            </p>
+          </div>
+
+          {/* Graph Container: Fills the remaining space with zero extra padding */}
+          <div className="flex-1 w-full mt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={gait.history}>
-                <XAxis dataKey="displayTime" hide />
-                <YAxis hide domain={[0, 1024]} />
+              <LineChart
+                data={gait.history}
+                /* Crucial: Negative left margin hides the dead space. 
+                   Bottom 5 margin ensures the X-axis timestamps aren't cut off.
+                */
+                margin={{ top: 10, right: 0, left: -25, bottom: 5 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#F0F0F0"
+                />
+
+                <XAxis
+                  dataKey="displayTime"
+                  axisLine={false}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                  /* dy={-15} keeps the time inside the grid area */
+                  tick={{ fontSize: 9, fontWeight: 900, fill: '#CCC', fontFamily: 'monospace' }}
+                // dy={-15} 
+                />
+
+                <YAxis
+                  domain={[0, 1024]}
+                  axisLine={false}
+                  tickLine={false}
+                  /* dx={40} pushes the PSI numbers inside the grid lines */
+                  tick={{ fontSize: 9, fontWeight: 900, fill: '#CCC', fontFamily: 'monospace' }}
+                // dx={40} 
+                />
+
                 {footRegions.map(r => (
-                  <Line key={r.id} type="monotone" dataKey={`${r.id}_L`} stroke={r.color} strokeWidth={2} dot={false} isAnimationActive={false} strokeOpacity={0.7} />
+                  <Line
+                    key={r.id}
+                    type="monotone"
+                    dataKey={`${r.id}_L`}
+                    stroke={r.color}
+                    strokeWidth={2}
+                    dot={false}
+                    isAnimationActive={false}
+                    strokeOpacity={0.8}
+                    connectNulls
+                  />
                 ))}
               </LineChart>
             </ResponsiveContainer>
@@ -112,15 +158,61 @@ export default function LiveSession() {
         </div>
 
         {/* RIGHT GRAPH */}
-        <div className="lg:col-span-3 duo-card">
-          <p className="text-[10px] font-black text-gray-400 mb-4 tracking-widest">RIGHT_FOOT_16CH</p>
-          <div className="h-[400px]">
+        <div className="h-[400px] lg:col-span-3 duo-card overflow-hidden flex flex-col">
+          {/* Header: Internalized to the card padding */}
+          <div className="pt-4 px-4 flex justify-between items-end">
+            <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase">
+              RIGHT_FOOT_16CH
+            </p>
+          </div>
+
+          {/* Graph Container: Fills the remaining space with zero extra padding */}
+          <div className="flex-1 w-full mt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={gait.history}>
-                <XAxis dataKey="displayTime" hide />
-                <YAxis hide domain={[0, 1024]} />
+              <LineChart
+                data={gait.history}
+                /* Crucial: Negative left margin hides the dead space. 
+                   Bottom 5 margin ensures the X-axis timestamps aren't cut off.
+                */
+                margin={{ top: 10, right: 0, left: -25, bottom: 5 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#F0F0F0"
+                />
+
+                <XAxis
+                  dataKey="displayTime"
+                  axisLine={false}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                  /* dy={-15} keeps the time inside the grid area */
+                  tick={{ fontSize: 9, fontWeight: 900, fill: '#CCC', fontFamily: 'monospace' }}
+                // dy={-15} 
+                />
+
+                <YAxis
+                  domain={[0, 1024]}
+                  axisLine={false}
+                  tickLine={false}
+                  /* dx={40} pushes the PSI numbers inside the grid lines */
+                  tick={{ fontSize: 9, fontWeight: 900, fill: '#CCC', fontFamily: 'monospace' }}
+                // dx={40} 
+                />
+
                 {footRegions.map(r => (
-                  <Line key={r.id} type="monotone" dataKey={`${r.id}_R`} stroke={r.color} strokeWidth={2} dot={false} isAnimationActive={false} strokeOpacity={0.7} />
+                  <Line
+                    key={r.id}
+                    type="monotone"
+                    dataKey={`${r.id}_R`}
+                    stroke={r.color}
+                    strokeWidth={2}
+                    dot={false}
+                    isAnimationActive={false}
+                    strokeOpacity={0.8}
+                    connectNulls
+                  />
                 ))}
               </LineChart>
             </ResponsiveContainer>
