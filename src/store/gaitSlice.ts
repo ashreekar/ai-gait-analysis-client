@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  data: null,
-  session: [],
+  data: null as any,
+  session: [] as any[],
   isRunning: false,
   sleep: false,
 };
@@ -11,7 +11,9 @@ const gaitSlice = createSlice({
   name: "gait",
   initialState,
   reducers: {
-    setData: (state, action) => {
+    setData: (state, action:{
+      payload: any
+    }) => {
       state.data = action.payload;
       if (state.isRunning) state.session.push(action.payload);
     },
