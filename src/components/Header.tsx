@@ -2,17 +2,23 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
 import { 
-  Menu, X, LayoutDashboard, Activity, 
-  Settings, User, ChevronRight, History,
-  BluetoothSearching, LogOut
+  Menu, X, Activity, 
+  Settings, ChevronRight, History,
+  LogOut 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const isLoginPage = pathname === '/login';
   const [isOpen, setIsOpen] = useState(false);
+
+  // Extract initial and name dynamically
+  const userName = session?.user?.name || "User";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   // 1. LOGIN PAGE HEADER
   if (isLoginPage) {
@@ -27,7 +33,6 @@ export default function Header() {
     );
   }
 
-  // 2. APP PAGES: HAMBURGER SIDEBAR
   return (
     <>
       {/* TRIGGER BUTTON */}
@@ -40,7 +45,6 @@ export default function Header() {
         </button>
       </div>
 
-      {/* SIDEBAR OVERLAY */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -60,8 +64,8 @@ export default function Header() {
               className="fixed top-0 left-0 h-full w-80 bg-white border-r-4 border-duo-gray z-[59] p-8 pt-24 flex flex-col"
             >
               <div className="mb-12">
-                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-1 italic">Diagnostic Suite</p>
-                <h2 className="text-2xl font-black text-duo-text tracking-tighter italic">GAIT_ANALYSER</h2>
+                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-1 italic text-center">Diagnostic Suite</p>
+                <h2 className="text-2xl font-black text-duo-text tracking-tighter italic text-center uppercase">Gait_Analyser</h2>
               </div>
 
               <nav className="flex-1 space-y-2">
@@ -81,30 +85,29 @@ export default function Header() {
                 />
                 <SideNavLink 
                   href="/settings" 
-                  icon={<BluetoothSearching />} 
-                  label="Pairing" 
+                  icon={<Settings />} 
+                  label="Settings" 
                   active={pathname === '/settings'} 
                   onClick={() => setIsOpen(false)} 
                 />
               </nav>
 
-              {/* USER & SYSTEM SECTION */}
+              {/* DYNAMIC USER SECTION */}
               <div className="mt-auto pt-6 space-y-4">
-                <Link 
-                  href="/profile" 
-                  className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50 border-2 border-duo-gray hover:border-duo-blue transition-colors group"
-                >
+                <div className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50 border-2 border-duo-gray">
                   <div className="h-10 w-10 rounded-full bg-duo-blue border-b-2 border-duo-blue-dark flex items-center justify-center text-white font-black">
-                    A
+                    {userInitial}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-black text-duo-text uppercase tracking-widest">Ashreek</p>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-[10px] font-black text-duo-text uppercase tracking-widest truncate">{userName}</p>
                     <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Pro Clinical Tier</p>
                   </div>
-                  <ChevronRight size={16} className="text-gray-300 group-hover:text-duo-blue" />
-                </Link>
+                </div>
 
-                <button className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black text-duo-red uppercase tracking-widest hover:bg-red-50 rounded-xl transition-colors">
+                <button 
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black text-duo-red uppercase tracking-widest hover:bg-red-50 rounded-xl transition-colors border-2 border-transparent hover:border-duo-red/10"
+                >
                   <LogOut size={14} /> Log Out System
                 </button>
               </div>
@@ -115,8 +118,6 @@ export default function Header() {
     </>
   );
 }
-
-// --- SUB-COMPONENTS ---
 
 function SideNavLink({ href, icon, label, active, onClick }: any) {
   return (
