@@ -1,24 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #08090A;
-  --color-secondary-bg: #111315;
-  --color-border-subtle: #2A2E35;
-  --color-primary-teal: #00B4D8;
-  --color-accent-violet: #7209B7;
-  --color-gait-success: #2ECC71;
-  --color-gait-warning: #F1C40F;
-  --color-gait-error: #E74C3C;
+  --color-duo-green: #58cc02;
+  --color-duo-green-dark: #46a302;
+  --color-duo-blue: #1cb0f6;
+  --color-duo-blue-dark: #1899d6;
+  --color-duo-orange: #ffc800;
+  --color-duo-red: #ff4b4b;
+  --color-duo-gray: #e5e5e5;
+  --color-duo-text: #4b4b4b;
+  --color-bg-island: #ffffff;
 }
 
-@utility glass-panel {
-  background: rgba(17, 19, 21, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--color-border-subtle);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+/* Custom shadow for the floating island */
+.shadow-island {
+  shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
-:root {
-  background-color: var(--color-background);
-  color: white;
+.duo-button-blue {
+  @apply rounded-2xl border-b-4 border-duo-blue-dark bg-duo-blue transition-all active:translate-y-1 active:border-b-0;
+}
+
+.duo-card {
+  @apply rounded-3xl border-2 border-duo-gray bg-white p-6 shadow-[0_4px_0_0_#e5e5e5];
+}
+
+.duo-btn-3d {
+  @apply relative rounded-2xl border-b-4 font-black tracking-widest transition-all active:translate-y-1 active:border-b-0;
 }
