@@ -7,14 +7,21 @@ import {
 import { motion } from 'framer-motion';
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip, CartesianGrid } from 'recharts';
 import { BlendingHeatmap } from '@/components/BlendingHeatmap';
+import { useParams } from 'next/navigation';
 
 const footRegions = [
-  { id: "T1", name: "Hallux", color: "#58CC02" }, { id: "T2", name: "2nd Toe", color: "#58CC02" },
-  { id: "M1", name: "1st Met", color: "#1CB0F6" }, { id: "MH", name: "Heel", color: "#FF4B4B" },
-  { id: "MM", name: "Midfoot", color: "#FFC800" }, { id: "LM", name: "Lat Mid", color: "#FFC800" }
+  { id: "T1", name: "Hallux", color: "#58CC02" }, { id: "T2", name: "Toe 2", color: "#58CC02" },
+  { id: "T3", name: "Toe 3", color: "#58CC02" }, { id: "T4", name: "Toe 4", color: "#58CC02" },
+  { id: "T5", name: "Toe 5", color: "#58CC02" }, { id: "M1", name: "Met 1", color: "#1CB0F6" },
+  { id: "M2", name: "Met 2", color: "#1CB0F6" }, { id: "M3", name: "Met 3", color: "#1CB0F6" },
+  { id: "M4", name: "Met 4", color: "#1CB0F6" }, { id: "M5", name: "Met 5", color: "#1CB0F6" },
+  { id: "MM", name: "Med Mid", color: "#FFC800" }, { id: "CM", name: "Cent Mid", color: "#FFC800" },
+  { id: "LM", name: "Lat Mid", color: "#FFC800" }, { id: "MH", name: "Med Heel", color: "#FF4B4B" },
+  { id: "CH", name: "Cent Heel", color: "#FF4B4B" }, { id: "LH", name: "Lat Heel", color: "#FF4B4B" }
 ];
 
-export default function SessionDetail({ params }: { params: { id: string } }) {
+export default function SessionDetail() {
+   const params = useParams();
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0); 
   const scrollRef = useRef<HTMLDivElement>(null);
