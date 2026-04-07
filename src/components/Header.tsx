@@ -1,37 +1,29 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Zap, 
-  LayoutDashboard, 
-  Activity, 
-  User, 
-  Settings,
-  ChevronDown
+  Menu, X, LayoutDashboard, Activity, 
+  Settings, User, ChevronRight 
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  // Handle scroll effect for the island
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // 1. LOGIN PAGE HEADER (Normal, Full-Width)
+  // 1. LOGIN PAGE HEADER (Normal, Full-Width, No Logo Icon)
   if (isLoginPage) {
     return (
-      <header className="sticky top-0 z-50 h-20 w-full border-b-4 border-duo-gray bg-white px-6">
+      <header className="sticky top-0 z-50 h-20 w-full border-b-4 border-duo-gray bg-white px-8">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between">
-          <BrandLogo />
+          <span className="text-2xl font-black tracking-tighter text-duo-text">
+            GAIT <span className="text-duo-green">ANALYSER</span>
+          </span>
           <div className="flex items-center gap-4">
-            <span className="hidden font-bold text-gray-400 md:block">NEW USER?</span>
-            <Link href="/signup" className="duo-button-blue px-8 py-2 text-sm font-bold tracking-widest text-white">
+            <span className="hidden font-bold text-gray-400 md:block text-xs tracking-widest">NEW USER?</span>
+            <Link href="/login" className="duo-btn-3d bg-duo-blue border-duo-blue-dark px-8 py-2 text-sm font-bold tracking-widest text-white">
               SIGN UP
             </Link>
           </div>
@@ -40,68 +32,89 @@ export default function Header() {
     );
   }
 
-  // 2. DYNAMIC ISLAND HEADER (Floating Capsule)
+  // 2. APP PAGES: HAMBURGER SIDEBAR
   return (
-    <div className="pointer-events-none fixed top-0 z-50 flex w-full justify-center p-4 transition-all duration-500">
-      <header 
-        className={`pointer-events-auto flex items-center justify-between rounded-full border-b-4 border-duo-gray bg-white transition-all duration-500 ease-in-out shadow-island
-          ${isScrolled ? 'h-14 w-[400px] px-4' : 'h-16 w-full max-w-4xl px-8'}
-        `}
-      >
-        {/* ICON / LOGO */}
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border-b-2 border-duo-green-dark bg-duo-green text-white">
-            <Zap size={20} fill="currentColor" />
-          </div>
-          {!isScrolled && (
-            <span className="text-lg font-black tracking-tighter text-duo-text">GAIT<span className="text-duo-green">MATE</span></span>
-          )}
-        </Link>
+    <>
+      {/* TRIGGER BUTTON (Floating at top-left) */}
+      <div className="fixed top-6 left-6 z-[60]">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="duo-btn-3d h-14 w-14 bg-white border-duo-gray text-duo-text flex items-center justify-center hover:bg-gray-50 shadow-xl"
+        >
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+      </div>
 
-        {/* COMPACT NAV OPTIONS */}
-        <nav className="flex items-center gap-2">
-          <IslandLink href="/dashboard" icon={<LayoutDashboard size={20} />} active={pathname === '/dashboard'} compact={isScrolled} />
-          <IslandLink href="/live" icon={<Activity size={20} />} active={pathname === '/live'} compact={isScrolled} />
-          
-          <div className="mx-2 h-6 w-[2px] bg-duo-gray" />
+      {/* SIDEBAR OVERLAY */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Background Dimmer */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-duo-text/20 backdrop-blur-sm z-[58]"
+            />
 
-          {/* USER MINI-PROFILE */}
-          <button className="flex items-center gap-2 rounded-full border-2 border-duo-gray bg-gray-50 p-1 pr-3 transition-colors hover:bg-gray-100">
-            <div className="h-7 w-7 rounded-full bg-orange-400 border-b-2 border-orange-600 flex items-center justify-center overflow-hidden">
-              <User size={14} className="text-white" />
-            </div>
-            {!isScrolled && <span className="text-xs font-bold text-duo-text uppercase">Ashreek</span>}
-          </button>
-        </nav>
-      </header>
-    </div>
+            {/* Side Menu */}
+            <motion.aside 
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 h-full w-80 bg-white border-r-4 border-duo-gray z-[59] p-8 pt-24 flex flex-col"
+            >
+              <div className="mb-12">
+                <p className="text-xs font-black text-gray-300 uppercase tracking-[0.3em] mb-2">Platform</p>
+                <h2 className="text-2xl font-black text-duo-text tracking-tighter">GAIT ANALYSER</h2>
+              </div>
+
+              <nav className="flex-1 space-y-3">
+                <SideNavLink href="/dashboard" icon={<LayoutDashboard />} label="Dashboard" active={pathname === '/dashboard'} onClick={() => setIsOpen(false)} />
+                <SideNavLink href="/live" icon={<Activity />} label="Live Session" active={pathname === '/live'} onClick={() => setIsOpen(false)} />
+                <SideNavLink href="/settings" icon={<Settings />} label="Settings" active={pathname === '/settings'} onClick={() => setIsOpen(false)} />
+              </nav>
+
+              {/* User Section at Bottom */}
+              <div className="mt-auto pt-6 border-t-2 border-duo-gray">
+                <div className="flex items-center gap-4 p-3 rounded-2xl bg-gray-50 border-2 border-duo-gray">
+                  <div className="h-10 w-10 rounded-full bg-orange-400 border-b-2 border-orange-600 flex items-center justify-center text-white font-bold">
+                    A
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-black text-duo-text uppercase tracking-widest">Ashreek</p>
+                    <p className="text-[10px] font-bold text-gray-400">Pro Member</p>
+                  </div>
+                  <ChevronRight size={16} className="text-gray-300" />
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
 // --- SUB-COMPONENTS ---
 
-function BrandLogo() {
-  return (
-    <Link href="/" className="flex items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-b-4 border-duo-green-dark bg-duo-green text-white">
-        <Zap size={24} fill="currentColor" />
-      </div>
-      <span className="text-2xl font-black tracking-tighter text-duo-text">GAIT<span className="text-duo-green">MATE</span></span>
-    </Link>
-  );
-}
-
-function IslandLink({ href, icon, active, compact }: any) {
+function SideNavLink({ href, icon, label, active, onClick }: any) {
   return (
     <Link 
       href={href}
-      className={`flex items-center justify-center rounded-full transition-all duration-300
-        ${active ? 'bg-duo-blue/10 text-duo-blue' : 'text-gray-400 hover:bg-gray-100'}
-        ${compact ? 'h-10 w-10' : 'gap-2 px-4 py-2'}
-      `}
+      onClick={onClick}
+      className={`flex items-center gap-4 px-4 py-4 rounded-2xl border-2 transition-all font-black tracking-widest text-sm
+        ${active 
+          ? 'bg-[#DDF4FF] text-duo-blue border-[#84D8FF] translate-x-2' 
+          : 'text-gray-400 border-transparent hover:bg-gray-50 hover:text-duo-text hover:translate-x-1'
+        }`}
     >
-      {icon}
-      {!compact && <span className="text-xs font-bold tracking-widest"> {href.replace('/','').toUpperCase()} </span>}
+      <span className={active ? 'text-duo-blue' : 'text-gray-300'}>
+        {React.cloneElement(icon, { size: 20 })}
+      </span>
+      {label.toUpperCase()}
     </Link>
   );
 }

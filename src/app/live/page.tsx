@@ -1,137 +1,127 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Play, Square, Save, Moon, Battery, 
-  AlertTriangle, ShieldCheck, Zap, Activity 
+  ShieldCheck, AlertTriangle, Timer, Activity, Zap 
 } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip, XAxis } from 'recharts';
 import { useGaitSimulation } from '@/lib/hooks/useGaitSimulation';
 import { BlendingHeatmap } from '@/components/BlendingHeatmap';
 
 const footRegions = [
-  // TOES (Duo Green - Action/Primary)
-  { id: "T1", name: "Hallux (Big Toe)", color: "#58CC02" },
-  { id: "T2", name: "Second Toe", color: "#58CC02" },
-  { id: "T3", name: "Third Toe", color: "#58CC02" },
-  { id: "T4", name: "Fourth Toe", color: "#58CC02" },
-  { id: "T5", name: "Fifth Toe", color: "#58CC02" },
-
-  // METATARSALS / FOREFOOT (Sky Blue - Secondary)
-  { id: "M1", name: "1st Metatarsal", color: "#1CB0F6" },
-  { id: "M2", name: "2nd Metatarsal", color: "#1CB0F6" },
-  { id: "M3", name: "3rd Metatarsal", color: "#1CB0F6" },
-  { id: "M4", name: "4th Metatarsal", color: "#1CB0F6" },
-  { id: "M5", name: "5th Metatarsal", color: "#1CB0F6" },
-
-  // MIDFOOT / ARCH (Sunset Orange - Caution/Transition)
-  { id: "MM", name: "Medial Midfoot", color: "#FFC800" },
-  { id: "CM", name: "Central Midfoot", color: "#FFC800" },
-  { id: "LM", name: "Lateral Midfoot", color: "#FFC800" },
-
-  // HEEL (Lava Red - High Impact/Alert)
-  { id: "MH", name: "Medial Heel", color: "#FF4B4B" },
-  { id: "CH", name: "Central Heel", color: "#FF4B4B" },
-  { id: "LH", name: "Lateral Heel", color: "#FF4B4B" }
+  { id: "T1", name: "Hallux", color: "#58CC02" }, { id: "T2", name: "Toe 2", color: "#58CC02" },
+  { id: "T3", name: "Toe 3", color: "#58CC02" }, { id: "T4", name: "Toe 4", color: "#58CC02" },
+  { id: "T5", name: "Toe 5", color: "#58CC02" }, { id: "M1", name: "Met 1", color: "#1CB0F6" },
+  { id: "M2", name: "Met 2", color: "#1CB0F6" }, { id: "M3", name: "Met 3", color: "#1CB0F6" },
+  { id: "M4", name: "Met 4", color: "#1CB0F6" }, { id: "M5", name: "Met 5", color: "#1CB0F6" },
+  { id: "MM", name: "Med Mid", color: "#FFC800" }, { id: "CM", name: "Cent Mid", color: "#FFC800" },
+  { id: "LM", name: "Lat Mid", color: "#FFC800" }, { id: "MH", name: "Med Heel", color: "#FF4B4B" },
+  { id: "CH", name: "Cent Heel", color: "#FF4B4B" }, { id: "LH", name: "Lat Heel", color: "#FF4B4B" }
 ];
 
 export default function LiveSession() {
   const [isRunning, setIsRunning] = useState(false);
-  const [isSleep, setIsSleep] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSleep, setIsSleep] = useState(false);
   const gait = useGaitSimulation(isRunning);
 
+  // Format milliseconds to MM:SS:mmm
+  const formatTime = (ms: number) => {
+    const mins = Math.floor(ms / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
+    const mmm = ms % 1000;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${mmm.toString().padStart(3, '0')}`;
+  };
+
   return (
-    <div className={`min-h-screen bg-[#F7F7F7] p-6 pt-22 transition-all duration-700 ${isSleep ? 'brightness-50 grayscale' : ''}`}>
+    <div className={`min-h-screen bg-[#F7F7F7] p-6 pt-22 transition-all duration-1000 ${isSleep ? 'brightness-50 grayscale scale-[0.98]' : ''}`}>
       
-      {/* 1. TOP STATS BAR */}
-      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        
-        {/* GAIT PHASE & FALL RISK */}
+      {/* 1. STATUS HEADER */}
+      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="duo-card flex items-center gap-4">
+           <div className="bg-duo-blue/10 p-3 rounded-2xl text-duo-blue"><Timer size={24}/></div>
+           <div>
+             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Session Time</p>
+             <p className="text-xl font-black text-duo-text font-mono">{formatTime(gait.elapsedTime)}</p>
+           </div>
+        </div>
+
         <div className="duo-card flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-black text-gray-400 tracking-widest uppercase">Gait Phase</p>
-            <p className="text-2xl font-black text-duo-blue uppercase italic">{gait.phase || 'IDLE'}</p>
-          </div>
-          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border-b-4 ${gait.phase === 'STANCE' ? 'bg-duo-green border-duo-green-dark' : 'bg-duo-blue border-duo-blue-dark'}`}>
-             <Zap className="text-white" fill="white" size={20} />
-          </div>
+           <div>
+             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Gait Phase</p>
+             <p className="text-xl font-black text-duo-blue italic uppercase">{gait.phase}</p>
+           </div>
+           <Zap className={isRunning ? "text-duo-orange fill-duo-orange animate-pulse" : "text-gray-200"} />
         </div>
 
-        {/* SYMMETRY LOADING BAR */}
         <div className="duo-card flex flex-col justify-center">
-          <div className="flex justify-between items-end mb-2">
-            <p className="text-[10px] font-black text-gray-400 tracking-widest">SYMMETRY SCORE</p>
-            <p className="text-xl font-black text-duo-text">{gait.symmetry?.toFixed(0) || 0}%</p>
-          </div>
-          <div className="h-4 w-full bg-duo-gray rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-duo-green"
-              initial={{ width: 0 }}
-              animate={{ width: `${gait.symmetry || 0}%` }}
-            />
-          </div>
+           <div className="flex justify-between text-[10px] font-black text-gray-400 mb-1">
+             <span>SYMMETRY</span>
+             <span>{gait.symmetry?.toFixed(1)}%</span>
+           </div>
+           <div className="h-3 w-full bg-duo-gray rounded-full overflow-hidden">
+             <motion.div animate={{ width: `${gait.symmetry}%` }} className="h-full bg-duo-green" />
+           </div>
         </div>
 
-        {/* FALL RISK BADGE */}
         <div className={`duo-card flex items-center justify-between border-b-4 ${gait.fallRisk === 'Low' ? 'border-duo-green' : 'border-duo-red'}`}>
-          <div>
-            <p className="text-[10px] font-black text-gray-400 tracking-widest">STABILITY</p>
-            <p className={`text-xl font-black ${gait.fallRisk === 'Low' ? 'text-duo-green' : 'text-duo-red'}`}>{gait.fallRisk?.toUpperCase() || 'UNKNOWN'}</p>
-          </div>
-          {gait.fallRisk === 'Low' ? <ShieldCheck className="text-duo-green" size={32} /> : <AlertTriangle className="text-duo-red animate-bounce" size={32} />}
+           <p className={`font-black tracking-widest text-xs ${gait.fallRisk === 'Low' ? 'text-duo-green' : 'text-duo-red'}`}>
+             {gait.fallRisk?.toUpperCase()} RISK
+           </p>
+           {gait.fallRisk === 'Low' ? <ShieldCheck className="text-duo-green"/> : <AlertTriangle className="text-duo-red"/>}
         </div>
       </div>
 
-      {/* 2. MAIN VISUALIZATION GRID */}
-      <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* 2. ANALYTICS GRID */}
+      <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
-        {/* LEFT FOOT GRAPH */}
+        {/* LEFT GRAPH */}
         <div className="lg:col-span-3 duo-card">
-          <p className="text-[10px] font-black text-gray-400 mb-4 tracking-widest">LEFT TELEMETRY</p>
-          <div className="h-64">
+          <p className="text-[10px] font-black text-gray-400 mb-4 tracking-widest">LEFT_FOOT_16CH</p>
+          <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={gait.history}>
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                <Line type="monotone" dataKey="M1_L" stroke="#1CB0F6" strokeWidth={3} dot={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="MH_L" stroke="#FF4B4B" strokeWidth={3} dot={false} isAnimationActive={false} />
+                <XAxis dataKey="displayTime" hide />
+                <YAxis hide domain={[0, 1024]} />
+                {footRegions.map(r => (
+                  <Line key={r.id} type="monotone" dataKey={`${r.id}_L`} stroke={r.color} strokeWidth={2} dot={false} isAnimationActive={false} strokeOpacity={0.7} />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* CENTER FOOT HEATMAPS */}
-        <div className="lg:col-span-6 duo-card flex justify-around items-center relative overflow-hidden">
-            {/* Battery Indicators beside feet */}
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
-              <Battery className="text-duo-green" size={18} />
-              <span className="text-[10px] font-bold text-gray-400">{gait.battery?.L?.toFixed(0)}%</span>
-            </div>
+        {/* CENTER HEATMAP */}
+        <div className="lg:col-span-6 duo-card flex flex-col items-center justify-center relative bg-white">
+           <div className="flex justify-around w-full items-center">
+              <div className="flex flex-col items-center gap-2">
+                <Battery className="text-duo-green" size={20}/>
+                <span className="text-[10px] font-bold text-gray-400">{gait.battery.L.toFixed(0)}%</span>
+                <BlendingHeatmap side="LEFT" pressureData={gait.leftPressure} isActive={isRunning} regions={footRegions} />
+              </div>
 
-            <BlendingHeatmap side="LEFT" pressureData={gait.leftPressure} isActive={isRunning} regions={footRegions} />
-            
-            <div className="flex flex-col items-center gap-4">
-                <span className="text-[10px] font-black text-duo-gray vertical-text tracking-[0.5em]">PLANTAR_SCAN</span>
-                <div className="h-24 w-[2px] bg-duo-gray rounded-full" />
-                <span className="text-[10px] font-black text-gray-300 font-mono italic">{(gait.timestamp/1000).toFixed(3)}s</span>
-            </div>
+              <div className="h-48 w-[2px] bg-duo-gray rounded-full opacity-50" />
 
-            <BlendingHeatmap side="RIGHT" pressureData={gait.rightPressure} isActive={isRunning} regions={footRegions} />
-
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
-              <Battery className="text-duo-green" size={18} />
-              <span className="text-[10px] font-bold text-gray-400">{gait.battery?.R?.toFixed(0)}%</span>
-            </div>
+              <div className="flex flex-col items-center gap-2">
+                <Battery className="text-duo-green" size={20}/>
+                <span className="text-[10px] font-bold text-gray-400">{gait.battery.R.toFixed(0)}%</span>
+                <BlendingHeatmap side="RIGHT" pressureData={gait.rightPressure} isActive={isRunning} regions={footRegions} />
+              </div>
+           </div>
         </div>
 
-        {/* RIGHT FOOT GRAPH */}
+        {/* RIGHT GRAPH */}
         <div className="lg:col-span-3 duo-card">
-          <p className="text-[10px] font-black text-gray-400 mb-4 tracking-widest">RIGHT TELEMETRY</p>
-          <div className="h-64">
+          <p className="text-[10px] font-black text-gray-400 mb-4 tracking-widest">RIGHT_FOOT_16CH</p>
+          <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={gait.history}>
-                <Line type="monotone" dataKey="M1_R" stroke="#1CB0F6" strokeWidth={3} dot={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="MH_R" stroke="#FF4B4B" strokeWidth={3} dot={false} isAnimationActive={false} />
+                <XAxis dataKey="displayTime" hide />
+                <YAxis hide domain={[0, 1024]} />
+                {footRegions.map(r => (
+                  <Line key={r.id} type="monotone" dataKey={`${r.id}_R`} stroke={r.color} strokeWidth={2} dot={false} isAnimationActive={false} strokeOpacity={0.7} />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -139,37 +129,33 @@ export default function LiveSession() {
       </div>
 
       {/* 3. DYNAMIC CONTROL ISLAND */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-4 bg-white border-2 border-duo-gray rounded-full p-3 shadow-2xl">
-          
-          {/* Start / Stop Button */}
-          <button 
-            onClick={() => setIsRunning(!isRunning)}
-            className={`duo-btn-3d flex items-center gap-3 px-8 py-3 text-white 
-              ${isRunning ? 'bg-duo-red border-red-700' : 'bg-duo-green border-duo-green-dark'}`}
-          >
-            {isRunning ? <Square size={18} fill="white" /> : <Play size={18} fill="white" />}
-            <span>{isRunning ? 'STOP' : 'START'}</span>
-          </button>
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+         <div className="flex items-center gap-4 bg-white border-2 border-duo-gray rounded-full p-3 shadow-2xl">
+            <button 
+              onClick={() => setIsRunning(!isRunning)}
+              className={`duo-btn-3d flex items-center gap-3 px-10 py-3 text-white transition-all
+                ${isRunning ? 'bg-duo-red border-red-700' : 'bg-duo-green border-duo-green-dark'}`}
+            >
+              {isRunning ? <Square size={18} fill="white"/> : <Play size={18} fill="white"/>}
+              <span>{isRunning ? 'STOP' : 'START'}</span>
+            </button>
 
-          <div className="h-8 w-[2px] bg-duo-gray mx-2" />
+            <div className="h-8 w-[2px] bg-duo-gray mx-1" />
 
-          {/* Record Button */}
-          <button 
-            onClick={() => setIsRecording(!isRecording)}
-            className={`p-3 rounded-2xl transition-all ${isRecording ? 'bg-duo-red/10 text-duo-red animate-pulse' : 'text-gray-400 hover:bg-gray-100'}`}
-          >
-            <Save size={24} />
-          </button>
+            <button 
+              onClick={() => setIsRecording(!isRecording)}
+              className={`p-3 rounded-2xl transition-all ${isRecording ? 'bg-duo-blue text-white border-b-4 border-duo-blue-dark animate-pulse' : 'text-gray-400 hover:bg-gray-100'}`}
+            >
+              <Save size={24} />
+            </button>
 
-          {/* Sleep Mode Toggle */}
-          <button 
-            onClick={() => setIsSleep(!isSleep)}
-            className={`p-3 rounded-2xl transition-all ${isSleep ? 'bg-duo-orange/20 text-duo-orange' : 'text-gray-400 hover:bg-gray-100'}`}
-          >
-            <Moon size={24} />
-          </button>
-        </div>
+            <button 
+              onClick={() => setIsSleep(!isSleep)}
+              className="p-3 rounded-2xl text-gray-400 hover:bg-gray-100"
+            >
+              <Moon size={24} fill={isSleep ? "currentColor" : "none"} />
+            </button>
+         </div>
       </div>
 
     </div>
