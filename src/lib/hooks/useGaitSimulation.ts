@@ -71,7 +71,7 @@ export const useGaitSimulation = (isActive: boolean) => {
           }
         };
       });
-    }, 50); // High frequency 20Hz update
+    }, 500); // High frequency 20Hz update
 
     return () => clearInterval(interval);
   }, [isActive]);
