@@ -52,7 +52,7 @@ export default function LivePage() {
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="relative">
-             <LiveDot active={isActive} />
+             <LiveDot/>
              {isActive && <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />}
           </div>
           <div>
