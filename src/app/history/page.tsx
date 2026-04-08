@@ -11,6 +11,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 // Mock Data for past sessions
 const MOCK_SESSIONS = [
@@ -102,6 +103,7 @@ function SessionRow({ session, index }: { session: any, index: number }) {
       transition={{ delay: index * 0.05 }}
       className="group cursor-pointer"
     >
+       <Link href={"history/1"}>
       <div className="duo-card flex flex-col md:flex-row items-center justify-between gap-6 hover:border-duo-blue transition-colors relative overflow-hidden active:translate-y-1 active:shadow-none">
         
         {/* DATE & TIME */}
@@ -153,6 +155,7 @@ function SessionRow({ session, index }: { session: any, index: number }) {
         </div>
 
       </div>
+      </Link>
     </motion.div>
   );
 }
