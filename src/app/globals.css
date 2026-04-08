@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+:root {
+  --msrit-blue: #004a99;
+  --duo-blue: #1CB0F6;
+  --duo-green: #58CC02;
+  --digital-twin-bg: #0B0E14;
+}
+
 @theme {
   --color-duo-green: #58cc02;
   --color-duo-green-dark: #46a302;
@@ -27,4 +34,10 @@
 
 .duo-btn-3d {
   @apply relative rounded-2xl border-b-4 font-black tracking-widest transition-all active:translate-y-1 active:border-b-0;
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
