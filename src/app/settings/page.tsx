@@ -28,28 +28,15 @@ export default function SettingsPage() {
         <div className="bg-white rounded-[32px] border border-gray-100 overflow-hidden shadow-sm">
           <div className="p-6 flex items-center gap-5 border-b border-gray-50">
             <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-100">
-              {patientProfile.initials}
+              A
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{patientProfile.name}</h2>
+              <h2 className="text-xl font-bold text-gray-900">{session?.user?.email?.split("@")[0]}</h2>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-tight mt-0.5">
-                {patientProfile.age}y • {patientProfile.height}cm • {patientProfile.weight}kg
+                {/* {patientProfile.age}y • {patientProfile.height}cm • {patientProfile.weight}kg */}
+                {22}y • {167}cm • {55}kg
               </p>
             </div>
-          </div>
-          
-          <div className="p-2">
-            {[
-              { label: "Surgery", value: patientProfile.surgery },
-              { label: "Recovery", value: `Week ${patientProfile.postOpWeek}` },
-              { label: "Clinician", value: patientProfile.clinician },
-              { label: "Speed Goal", value: `${patientProfile.targetSpeed} m/s` },
-            ].map((row) => (
-              <div key={row.label} className="flex justify-between items-center px-4 py-3 hover:bg-gray-50 rounded-2xl transition-colors">
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{row.label}</span>
-                <span className="text-sm font-bold text-gray-800">{row.value}</span>
-              </div>
-            ))}
           </div>
         </div>
 
