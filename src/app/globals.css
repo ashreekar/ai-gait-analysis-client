@@ -67,3 +67,8 @@ body {
   text-transform: uppercase;
   color: var(--text-sub);
 }
+
+/* Prevent the browser 'pull-to-refresh' effect on mobile */
+body {
+  overscroll-behavior-y: contain;
+}
