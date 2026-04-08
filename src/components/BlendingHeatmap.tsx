@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { AreaChart, Area, YAxis, ResponsiveContainer } from 'recharts';
 
 const SENSOR_NAMES: Record<string, string> = {
   T1: "Big Toe", T2: "Toe 2", T3: "Toe 3", T4: "Toe 4", T5: "Toe 5",
@@ -11,122 +9,77 @@ const SENSOR_NAMES: Record<string, string> = {
   MH: "Med Heel", CH: "Cent Heel", LH: "Lat Heel"
 };
 
-// Precisely adjusted coordinates to fit the new insole shape
+/**
+ * ── Coordinate Mapping ──
+ * These points have been recalibrated to fit your provided 
+ * shoe sole asset (390x1024 viewBox).
+ */
 const COORDS: any = { 
-  T1:[80,45],  T2:[105,40], T3:[130,50], T4:[155,70], T5:[165,100],
-  M1:[85,115], M2:[110,115], M3:[135,125], M4:[155,140], M5:[165,165],
-  MM:[90,210], CM:[115,220], LM:[145,230],
-  MH:[75,320], CH:[100,340], LH:[125,320]
+  T1:[270,120], T2:[210,130], T3:[160,150], T4:[110,190], T5:[80,240],
+  M1:[250,300], M2:[200,310], M3:[160,320], M4:[120,340], M5:[80,380],
+  MM:[220,500], CM:[170,520], LM:[120,540],
+  MH:[200,800], CH:[160,820], LH:[120,800]
 };
 
 const getClinicalColor = (p: number = 0) => {
   if (p > 750) return "#ef4444"; 
   if (p > 450) return "#f59e0b"; 
   if (p > 150) return "#34a853"; 
-  if (p > 30)  return "#3b82f6"; 
-  return "#f1f3f4";              
+  if (p > 30)  return "#3b82f6";  
+  return "#f1f3f4"; 
 };
 
-export const PressureHeatmap = ({ side, grid, history = [], operated = false }: any) => {
-  const [focusedId, setFocusedId] = useState<string | null>(null);
-
-  // Target exit point for the wiring ribbon on the medial arch
-  const WIRING_EXIT_X = 40;
-  const WIRING_EXIT_Y = 275;
+export function PressureHeatmap({ side, grid, operated = false }: any) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
-    <div className="relative bg-white rounded-3xl overflow-hidden group p-4 border border-gray-100 shadow-sm flex flex-col items-center justify-center min-h-[450px]">
-      <AnimatePresence>
-        {focusedId && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute inset-0 z-30 bg-white/95 backdrop-blur-sm p-4 flex flex-col"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                  {side} • {focusedId}
-                </p>
-                <h3 className="text-sm font-bold text-gray-900">{SENSOR_NAMES[focusedId]}</h3>
-                <p className="text-[11px] font-mono font-bold text-gray-400 mt-0.5">
-                  {grid[focusedId] || 0} PSI
-                </p>
-              </div>
-              <button 
-                onClick={() => setFocusedId(null)} 
-                className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-              >
-                <X size={14} className="text-gray-500" />
-              </button>
-            </div>
-            
-            <div className="flex-1 bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={history.length > 0 ? history : [{v:0},{v:400},{v:200},{v:grid[focusedId]}]}>
-                  <YAxis domain={[0, 1024]} hide />
-                  <Area 
-                    type="monotone" 
-                    dataKey={focusedId} 
-                    stroke={getClinicalColor(grid[focusedId])} 
-                    fill={getClinicalColor(grid[focusedId])} 
-                    fillOpacity={0.1} 
-                    strokeWidth={2} 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="relative bg-white rounded-[32px] border border-gray-100 p-6 shadow-sm mx-auto w-full md:max-w-full lg:max-w-[50vw] overflow-hidden group">
+      
+      {/* ── Fixed Tooltip Display ── */}
+      <div className="absolute top-4 left-6 h-12 pointer-events-none">
+        <AnimatePresence>
+          {hoveredId && (
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              exit={{ opacity: 0, x: -10 }}
+              className="flex flex-col"
+            >
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">
+                {SENSOR_NAMES[hoveredId]}
+              </span>
+              <span className="text-sm font-mono font-bold text-gray-900">
+                {grid[hoveredId] || 0} PSI
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-      {/* ── Foot Visualization ── */}
-      <div className={`flex flex-col items-center w-full ${side === 'LEFT' ? 'scale-x-[-1]' : ''}`}>
-        <svg viewBox="0 0 200 400" className="w-full h-auto max-w-[160px] transition-transform duration-500 group-hover:scale-[1.02] overflow-visible">
+      {/* Symmetry Logic: 
+        Your asset is Right Foot. If side is LEFT, flip horizontally (scale-x-[-1]).
+      */}
+      <div className={`flex flex-col items-center ${side === 'LEFT' ? 'scale-x-[-1]' : ''}`}>
+        
+        {/* Updated ViewBox to match asset: width="390" height="1024" */}
+        <svg viewBox="0 0 390.11722 1024" className="w-full h-auto max-w-[140px] lg:max-w-[160px]">
           <defs>
             <filter id="heatBlur" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="9" />
-              <feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 18 -7" />
+              {/* Higher deviation needed for larger viewBox */}
+              <feGaussianBlur stdDeviation="25" />
+              <feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -10" />
             </filter>
           </defs>
           
-          {/* Ribbon Cable Exit Lines (Underneath Insole) */}
-          <path d={`M ${WIRING_EXIT_X} 265 L -20 265`} stroke="#e5e7eb" strokeWidth="2" fill="none" />
-          <path d={`M ${WIRING_EXIT_X} 275 L -20 275`} stroke="#e5e7eb" strokeWidth="2" fill="none" />
-          <path d={`M ${WIRING_EXIT_X} 285 L -20 285`} stroke="#e5e7eb" strokeWidth="2" fill="none" />
-
-          {/* Improved Insole Outline to match Reference Image */}
+          {/* ── Your Shoe Sole Path Integration ── */}
           <path 
-            d="M100,20 
-               C160,20 185,60 185,120 
-               C185,180 160,230 155,290 
-               C150,350 135,385 100,385 
-               C65,385 45,350 45,290 
-               C45,230 85,190 85,130 
-               C85,70 40,20 100,20 Z" 
-            fill="#fefefe" 
-            stroke="#d1d5db" 
-            strokeWidth="2.5" 
+            d="M 146.84375,0.03125 C 109.95012,0.87132005 77.804347,24.535814 60.40625,56.84375 15.67886,139.90166 5.98577,236.56291 3.375,329.65625 1.34058,402.19801 43.58049,461.62318 75.34375,522.0625 97.68771,564.57872 87.84918,613.0258 67.75,653.5625 30.56443,728.55959 -13.57902,811.11577 3.96875,897.5 c 13.82366,62.11419 48.25267,128.1125 151.875,126.4688 67.74652,0.3437 119.96317,-56.11548 139.3125,-115.8438 27.55115,-85.04608 30.14629,-176.12225 41.78125,-264.5625 8.17855,-62.16708 29.89316,-120.52663 43.78125,-181.21875 25.60704,-111.90496 -3.40287,-229.29332 -59.125,-327 C 286.49061,73.791691 234.62821,8.642448 158.4375,0.5 154.53002,0.08241078 150.66033,-0.0556538 146.84375,0.03125 z" 
+            id="path3277-1" 
+            fill="#fcfcfc" // Light Gray Background
+            stroke="#dadce0" // Professional Stroke
+            strokeWidth="3" 
+            className="transition-colors group-hover:stroke-gray-200"
           />
-
-          {/* Wiring/Vein Layer */}
-          <g stroke="#e5e7eb" strokeWidth="1" fill="none" opacity="0.8">
-            {Object.keys(COORDS).map(id => {
-              // Create smooth curved lines from each sensor to the ribbon exit
-              const startX = COORDS[id][0];
-              const startY = COORDS[id][1];
-              // Calculate a control point to give the wires a nice swoop
-              const ctrlX = (startX + WIRING_EXIT_X) / 2 + (startX > 120 ? 20 : 0);
-              const ctrlY = (startY + WIRING_EXIT_Y) / 2 - 10;
-              return (
-                <path 
-                  key={`wire-${id}`} 
-                  d={`M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${WIRING_EXIT_X} ${WIRING_EXIT_Y}`} 
-                />
-              );
-            })}
-          </g>
 
           {/* Heatmap Layer */}
           <g filter="url(#heatBlur)">
@@ -135,38 +88,45 @@ export const PressureHeatmap = ({ side, grid, history = [], operated = false }: 
                 key={`h-${id}`} 
                 cx={COORDS[id][0]} 
                 cy={COORDS[id][1]} 
-                r={14 + grid[id]/60} 
+                r={35 + grid[id]/20} // Larger R needed for 1024 height
                 fill={getClinicalColor(grid[id])} 
-                fillOpacity="0.55" 
+                fillOpacity="0.5" 
               />
             ))}
           </g>
 
-          {/* Interactive Sensor Nodes */}
+          {/* Fixed Sensor Points */}
           {Object.keys(COORDS).map(id => (
-            <g key={id} onClick={() => setFocusedId(id)} className="cursor-pointer group/node">
-              {/* Hitbox */}
-              <circle cx={COORDS[id][0]} cy={COORDS[id][1]} r="16" fill="transparent" />
-              {/* Visible Node */}
+            <g 
+              key={id} 
+              onMouseEnter={() => setHoveredId(id)} 
+              onMouseLeave={() => setHoveredId(null)}
+              className="cursor-crosshair"
+            >
+              {/* Large hit area for interaction */}
+              <circle cx={COORDS[id][0]} cy={COORDS[id][1]} r="40" fill="transparent" />
+              
+              {/* Data Point */}
               <circle 
-                cx={COORDS[id][0]} cy={COORDS[id][1]} 
-                r={focusedId === id ? 8 : (grid[id] > 40 ? 6 : 4)} 
-                fill={grid[id] > 40 ? getClinicalColor(grid[id]) : "#f9fafb"} 
-                stroke={grid[id] > 40 ? "white" : "#cbd5e1"} 
-                strokeWidth={grid[id] > 40 ? 2 : 1.5}
-                className="transition-all duration-300 group-hover/node:scale-125"
+                cx={COORDS[id][0]} 
+                cy={COORDS[id][1]} 
+                r={grid[id] > 40 ? 12 : 8} 
+                fill={grid[id] > 40 ? getClinicalColor(grid[id]) : "#fff"} 
+                stroke={hoveredId === id ? "#1a73e8" : (grid[id] > 40 ? "white" : "#e8eaed")} 
+                strokeWidth={hoveredId === id ? 6 : 3}
+                className="transition-all duration-200"
               />
             </g>
           ))}
         </svg>
         
-        {/* Label (Flipped back so text isn't mirrored) */}
+        {/* Foot Label (Flipped back for legibility) */}
         <div className={`mt-6 ${side === 'LEFT' ? 'scale-x-[-1]' : ''}`}>
-           <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.25em]">
-             {side} {operated && <span className="text-blue-500">• OP</span>}
+           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+             {side} {operated && "(OP)"}
            </span>
         </div>
       </div>
     </div>
   );
-};
+}
