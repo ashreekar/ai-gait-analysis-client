@@ -1,43 +1,69 @@
 @import "tailwindcss";
 
-:root {
-  --msrit-blue: #004a99;
-  --duo-blue: #1CB0F6;
-  --duo-green: #58CC02;
-  --digital-twin-bg: #0B0E14;
-}
-
 @theme {
-  --color-duo-green: #58cc02;
-  --color-duo-green-dark: #46a302;
-  --color-duo-blue: #1cb0f6;
-  --color-duo-blue-dark: #1899d6;
-  --color-duo-orange: #ffc800;
-  --color-duo-red: #ff4b4b;
-  --color-duo-gray: #e5e5e5;
-  --color-duo-text: #4b4b4b;
-  --color-bg-island: #ffffff;
+  /* Google Brand Palette */
+  --color-google-blue: #1a73e8;
+  --color-google-red: #ea4335;
+  --color-google-yellow: #fbbc04;
+  --color-google-green: #34a853;
+  
+  /* UI Radii */
+  --radius-google: 28px;
 }
 
-/* Custom shadow for the floating island */
-.shadow-island {
-  shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+:root {
+  --bg-main: #f8f9fa;
+  --surface: #ffffff;
+  --text-main: #202124;
+  --text-sub: #5f6368;
+  --border: #dadce0;
 }
 
-.duo-button-blue {
-  @apply rounded-2xl border-b-4 border-duo-blue-dark bg-duo-blue transition-all active:translate-y-1 active:border-b-0;
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.duo-card {
-  @apply rounded-3xl border-2 border-duo-gray bg-white p-6 shadow-[0_4px_0_0_#e5e5e5];
+/* Custom Component Classes using Native CSS */
+.google-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-google);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.duo-btn-3d {
-  @apply relative rounded-2xl border-b-4 font-black tracking-widest transition-all active:translate-y-1 active:border-b-0;
+.google-card:hover {
+  box-shadow: 0 4px 12px rgba(60, 64, 67, 0.1);
+  border-color: transparent;
 }
 
-.glass-morphism {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Fix for the @apply error */
+.btn-fun {
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-fun:active {
+  transform: scale(0.95);
+}
+
+.nav-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  border-radius: 16px;
+}
+
+.label-caps {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-sub);
 }

@@ -1,160 +1,411 @@
 "use client";
-import React from 'react';
-import { 
-  Activity, 
-  Cpu, 
-  Zap, 
-  ArrowRight, 
-  Binary, 
-  ShieldCheck, 
-  Maximize2,
-  Database
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LiveDot } from "@/components/GaitUI";
 
 export default function LandingPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (session) router.push("/dashboard");
+  }, [session, router]);
+
+  if (status === "loading") {
+    return (
+      <div
+        style={{
+          background: "var(--navy)",
+          minHeight: "100dvh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              border: "2px solid var(--border)",
+              borderTop: "2px solid var(--accent)",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+              margin: "0 auto",
+            }}
+          />
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white selection:bg-duo-blue overflow-x-hidden">
-      
-      {/* HERO SECTION */}
-      <header className="relative pt-32 pb-40 border-b border-white/5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1CB0F615,transparent_70%)]" />
-        
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+    <div
+      style={{
+        background: "var(--navy)",
+        minHeight: "100dvh",
+        maxWidth: "var(--max-w)",
+        margin: "0 auto",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Mesh background */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          background: `
+            radial-gradient(ellipse 500px 400px at 100% 0%, rgba(232,67,147,0.12) 0%, transparent 60%),
+            radial-gradient(ellipse 400px 300px at 0% 70%, rgba(59,130,246,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse 600px 400px at 50% 110%, rgba(17,34,64,0.9) 0%, transparent 70%)
+          `,
+        }}
+      />
+
+      {/* Animated gait lines decorative */}
+      <div
+        style={{
+          position: "absolute",
+          top: "5%",
+          right: "-10%",
+          width: 340,
+          height: 340,
+          opacity: 0.06,
+          pointerEvents: "none",
+        }}
+      >
+        <svg viewBox="0 0 340 340" fill="none">
+          {[0.9, 0.7, 0.5, 0.3].map((r, i) => (
+            <circle
+              key={i}
+              cx="170"
+              cy="170"
+              r={170 * r}
+              stroke="white"
+              strokeWidth="1"
+            />
+          ))}
+          {[0, 60, 120, 180, 240, 300].map((deg, i) => (
+            <line
+              key={i}
+              x1="170"
+              y1="170"
+              x2={170 + 170 * Math.cos((deg * Math.PI) / 180)}
+              y2={170 + 170 * Math.sin((deg * Math.PI) / 180)}
+              stroke="white"
+              strokeWidth="0.5"
+            />
+          ))}
+        </svg>
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "48px 24px 40px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        {/* ── Hero ── */}
+        <div>
+          {/* Status chip */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 12px",
+              borderRadius: 20,
+              background: "rgba(34,197,94,0.08)",
+              border: "1px solid rgba(34,197,94,0.2)",
+              marginBottom: 40,
+            }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-duo-blue/10 border border-duo-blue/20 mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-duo-blue opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-duo-blue"></span>
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-duo-blue">Next-Gen Digital Twin</span>
-            </div>
-            
-            <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tighter leading-none">
-              GAIT <span className="text-transparent bg-clip-text bg-gradient-to-r from-duo-blue to-cyan-400">TWIN</span>
-            </h1>
-            
-            <p className="max-w-2xl mx-auto text-gray-400 text-lg md:text-xl mb-12 font-medium leading-relaxed">
-              A high-fidelity virtual mirror of human locomotion. Fusing 16-point pressure sensing 
-              with Edge-AI to provide real-time biomechanical analysis.
-            </p>
-
-            <Link href="/login">
-              <button className="group relative px-12 py-5 bg-duo-blue rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_6px_0_0_#1899d6] active:translate-y-1 active:shadow-none transition-all">
-                <span className="flex items-center gap-3">
-                  Enter Clinical Portal <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </span>
-              </button>
-            </Link>
-          </motion.div>
-        </div>
-      </header>
-
-      {/* CORE TECHNOLOGY SECTION */}
-      <section className="py-32">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-            <div>
-              <h2 className="text-4xl font-black mb-8 tracking-tighter uppercase">The Methodology</h2>
-              <div className="space-y-10">
-                <div className="flex gap-6">
-                  <div className="h-12 w-12 shrink-0 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                    <Zap className="text-duo-blue" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-lg mb-2 uppercase tracking-tight text-white">Wireless Data Fusion</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      Real-time synchronization of a 16-point FSR array and 6-axis MEMS IMU for 
-                      comprehensive 3D spatial kinematics.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-6">
-                  <div className="h-12 w-12 shrink-0 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                    <Cpu className="text-duo-green" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-lg mb-2 uppercase tracking-tight text-white">Edge-AI Pipeline</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      On-device LSTM neural networks classify gait phases and predict fall risks 
-                      with sub-10ms inference latency.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-6">
-                  <div className="h-12 w-12 shrink-0 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                    <Binary className="text-orange-400" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-lg mb-2 uppercase tracking-tight text-white">Digital Twin Rendering</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      A continuous virtual model updated at 500Hz, bridging the gap between $20k lab 
-                      setups and low-cost home rehab.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -inset-4 bg-duo-blue/20 blur-3xl rounded-full" />
-              <div className="relative aspect-square rounded-[3rem] border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center p-12">
-                <div className="text-center">
-                  <Activity size={80} className="text-duo-blue mx-auto mb-6 animate-pulse" />
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Live Stream 500Hz</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TECHNICAL SPECS (TABLE) */}
-      <section className="py-32 bg-white/5">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-black tracking-tighter uppercase mb-4">System Specifications</h2>
-            <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Hardware & Software Integration</p>
+            <LiveDot />
+            <span
+              style={{
+                fontFamily: "DM Mono, monospace",
+                fontSize: 11,
+                color: "rgba(134,239,172,0.9)",
+              }}
+            >
+              Post-Surgery Gait Rehabilitation
+            </span>
           </div>
 
-          <div className="border border-white/10 rounded-[2.5rem] overflow-hidden bg-black/40 backdrop-blur-md">
+          {/* Title */}
+          <h1
+            style={{
+              fontFamily: "Syne, sans-serif",
+              fontSize: 44,
+              fontWeight: 800,
+              lineHeight: 1.05,
+              letterSpacing: -2,
+              marginBottom: 16,
+            }}
+          >
+            <span style={{ color: "var(--text)" }}>Smart</span>
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(135deg, #E84393, #c026d3)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Gait
+            </span>
+            <br />
+            <span style={{ color: "var(--text)" }}>Analysis</span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: 15,
+              color: "var(--text2)",
+              lineHeight: 1.6,
+              maxWidth: 300,
+              marginBottom: 32,
+            }}
+          >
+            Clinically validated rehabilitation monitoring for post-knee surgery
+            patients. Real-time gait symmetry, pressure heatmaps, and discharge
+            tracking.
+          </p>
+
+          {/* Feature chips */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
             {[
-              { label: "Processing", value: "STM32 ARM Cortex-M33 (160MHz)", icon: Cpu },
-              { label: "Sensing", value: "16-Point FSR Array + 6-Axis IMU", icon: Maximize2 },
-              { label: "Machine Learning", value: "CMSIS-NN Optimized LSTM Models", icon: ShieldCheck },
-              { label: "Data Pipeline", value: "Structured JSON via 115200 Baud", icon: Database }
-            ].map((spec, i) => (
-              <div key={i} className="flex items-center justify-between p-8 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                <div className="flex items-center gap-4">
-                  <spec.icon size={18} className="text-duo-blue" />
-                  <span className="text-xs font-black uppercase tracking-widest text-gray-400">{spec.label}</span>
-                </div>
-                <span className="text-sm font-bold text-white text-right">{spec.value}</span>
+              "16-sensor FSR insoles",
+              "Real-time symmetry",
+              "Fall risk scoring",
+              "Discharge tracking",
+            ].map((feat) => (
+              <div
+                key={feat}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid var(--border)",
+                  fontSize: 11,
+                  color: "var(--text2)",
+                  fontFamily: "DM Mono, monospace",
+                }}
+              >
+                {feat}
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* FOOTER */}
-      <footer className="py-20 border-t border-white/5">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600 mb-8">
-            © 2026 Gait Twin Technology
-          </p>
-          <Link href="/login" className="text-duo-blue hover:text-white transition-colors text-xs font-black uppercase tracking-widest">
-            Access Restricted Portal
-          </Link>
+        {/* ── Login Card ── */}
+        <div>
+          {/* Stats strip */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 1,
+              borderRadius: 14,
+              overflow: "hidden",
+              border: "1px solid var(--border)",
+              marginBottom: 24,
+            }}
+          >
+            {[
+              { val: "10", label: "Charts" },
+              { val: "12", label: "Formulas" },
+              { val: "85%", label: "SI Target" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  padding: "12px 8px",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "Syne, sans-serif",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    background: "linear-gradient(135deg, #E84393, #3B82F6)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {s.val}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "DM Mono, monospace",
+                    fontSize: 9,
+                    color: "var(--text3)",
+                    marginTop: 2,
+                  }}
+                >
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid var(--border)",
+              borderRadius: 20,
+              padding: 24,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "Syne, sans-serif",
+                fontSize: 20,
+                fontWeight: 700,
+                marginBottom: 6,
+              }}
+            >
+              Patient Login
+            </div>
+            <div
+              style={{
+                fontFamily: "DM Mono, monospace",
+                fontSize: 11,
+                color: "var(--text3)",
+                marginBottom: 20,
+              }}
+            >
+              Sign in to access your rehabilitation dashboard
+            </div>
+
+            {/* Google Sign In */}
+            <button
+              onClick={async () => {
+                setLoading(true);
+                await signIn("google", { callbackUrl: "/dashboard" });
+              }}
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "14px 20px",
+                borderRadius: 12,
+                background: loading
+                  ? "rgba(255,255,255,0.05)"
+                  : "rgba(255,255,255,0.92)",
+                border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                marginBottom: 12,
+                transition: "all 0.15s",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              <span
+                style={{
+                  color: loading ? "var(--text3)" : "#1a1a1a",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  fontFamily: "Plus Jakarta Sans, sans-serif",
+                }}
+              >
+                {loading ? "Signing in…" : "Continue with Google"}
+              </span>
+            </button>
+
+            {/* Demo credentials */}
+            <div
+              style={{
+                background: "rgba(59,130,246,0.08)",
+                border: "1px solid rgba(59,130,246,0.2)",
+                borderRadius: 10,
+                padding: "10px 12px",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "DM Mono, monospace",
+                  fontSize: 10,
+                  color: "#93c5fd",
+                  marginBottom: 4,
+                }}
+              >
+                Demo Access
+              </div>
+              <button
+                onClick={() =>
+                  signIn("credentials", {
+                    email: "demo@gaitanalysis.app",
+                    password: "demo123",
+                    callbackUrl: "/dashboard",
+                  })
+                }
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  fontFamily: "DM Mono, monospace",
+                  fontSize: 11,
+                  color: "rgba(147,197,253,0.8)",
+                  textDecoration: "underline",
+                }}
+              >
+                Sign in as demo patient →
+              </button>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                fontSize: 10,
+                color: "var(--text3)",
+                fontFamily: "DM Mono, monospace",
+                textAlign: "center",
+                lineHeight: 1.5,
+              }}
+            >
+              Research use only. For patient care, consult a qualified
+              physiotherapist.
+            </div>
+          </div>
         </div>
-      </footer>
-
+      </div>
     </div>
   );
 }

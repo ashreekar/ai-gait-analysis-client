@@ -1,161 +1,211 @@
 "use client";
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Calendar, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  ChevronRight, 
-  Filter,
-  Clock,
-  TrendingUp
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import BottomNav from "@/components/Bottomnav";
+import { Badge, SectionTitle } from "@/components/GaitUI";
+import { sessionHistory, weeklyProgress } from "@/lib/mockData";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  ReferenceLine,
+  Tooltip,
+} from "recharts";
 
-// Mock Data for past sessions
-const MOCK_SESSIONS = [
-  { id: 1, date: "Apr 7, 2026", time: "10:32 AM", duration: "2 min 15 sec", symmetry: 92, trend: "up", risk: "Low" },
-  { id: 2, date: "Apr 6, 2026", time: "02:15 PM", duration: "5 min 40 sec", symmetry: 88, trend: "down", risk: "Low" },
-  { id: 3, date: "Apr 4, 2026", time: "09:00 AM", duration: "12 min 10 sec", symmetry: 65, trend: "down", risk: "Moderate" },
-  { id: 4, date: "Mar 30, 2026", time: "11:20 AM", duration: "8 min 05 sec", symmetry: 95, trend: "up", risk: "Low" },
-];
+// --- Google Style Tooltip ---
+const googleTooltip = {
+  contentStyle: {
+    background: "#ffffff",
+    border: "none",
+    borderRadius: "16px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+    fontSize: "12px",
+    padding: "12px",
+  },
+  itemStyle: { color: "#1a73e8", fontWeight: "bold" },
+  cursor: { stroke: "#e8eaed", strokeWidth: 2 },
+};
 
-export default function SessionHistory() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterRisk, setFilterRisk] = useState("All");
-
-  const filteredSessions = MOCK_SESSIONS.filter(s => 
-    (filterRisk === "All" || s.risk === filterRisk) &&
-    (s.date.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  return (
-    <div className="min-h-screen bg-[#F7F7F7] pt-24 px-6 pb-12">
-      <div className="mx-auto max-w-5xl">
-        
-        {/* HEADER SECTION */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-black text-duo-text tracking-tighter">SESSION HISTORY</h1>
-          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Review and compare your gait performance</p>
-        </div>
-
-        {/* SEARCH & FILTER BAR */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-duo-blue transition-colors" size={20} />
-            <input 
-              type="text"
-              placeholder="Search by date (e.g. Apr 7)..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-duo-gray bg-white font-bold text-duo-text focus:border-duo-blue focus:outline-none transition-all shadow-[0_4px_0_0_#e5e5e5]"
-            />
-          </div>
-
-          <div className="flex gap-2">
-            {["All", "Low", "Moderate"].map((risk) => (
-              <button
-                key={risk}
-                onClick={() => setFilterRisk(risk)}
-                className={`px-6 h-14 rounded-2xl border-2 font-black tracking-widest text-xs transition-all shadow-[0_4px_0_0_#e5e5e5] active:translate-y-1 active:shadow-none
-                  ${filterRisk === risk 
-                    ? 'bg-duo-blue border-duo-blue-dark text-white' 
-                    : 'bg-white border-duo-gray text-gray-400 hover:bg-gray-50'
-                  }`}
-              >
-                {risk.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* SESSIONS LIST */}
-        <div className="space-y-4">
-          {filteredSessions.map((session, index) => (
-            <SessionRow key={session.id} session={session} index={index} />
-          ))}
-
-          {filteredSessions.length === 0 && (
-            <div className="duo-card text-center py-20 opacity-50">
-              <p className="font-black text-gray-400 tracking-widest uppercase">No sessions found</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+function FallRiskBadge({ risk }: { risk: string }) {
+  if (risk === "Low") return <Badge variant="green">{risk} Risk</Badge>;
+  if (risk === "High") return <Badge variant="red">{risk} Risk</Badge>;
+  return <Badge variant="amber">{risk} Risk</Badge>;
 }
 
-// --- SUB-COMPONENT: SESSION ROW ---
-
-function SessionRow({ session, index }: { session: any, index: number }) {
-  const getSymmetryColor = (score: number) => {
-    if (score > 85) return "bg-duo-green";
-    if (score > 70) return "bg-duo-orange";
-    return "bg-duo-red";
-  };
+export default function HistoryPage() {
+  const router = useRouter();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="group cursor-pointer"
-    >
-       <Link href={"history/1"}>
-      <div className="duo-card flex flex-col md:flex-row items-center justify-between gap-6 hover:border-duo-blue transition-colors relative overflow-hidden active:translate-y-1 active:shadow-none">
+    <div className="bg-[#f8f9fa] min-h-screen pb-28 font-sans text-[#202124]">
+      {/* ── Google Style Header ── */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-6">
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">Recovery Journey</h1>
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+          Week 6 Post-Op • Progression Log
+        </p>
+      </header>
+
+      <main className="px-4 pt-6 space-y-6">
         
-        {/* DATE & TIME */}
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="h-12 w-12 rounded-2xl bg-gray-50 border-2 border-duo-gray flex items-center justify-center text-duo-blue">
-            <Calendar size={24} />
+        {/* ── Recovery Trend Card ── */}
+        <div className="bg-white rounded-[32px] border border-gray-100 p-6 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+              Walking Velocity
+            </span>
+            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+              ↑ 12% Improvement
+            </span>
           </div>
-          <div>
-            <p className="text-sm font-black text-duo-text tracking-tight">{session.date}</p>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-              <Clock size={12} /> {session.time}
+          <div className="h-44 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={weeklyProgress}>
+                <CartesianGrid strokeDasharray="6 6" stroke="#f1f3f4" vertical={false} />
+                <XAxis 
+                  dataKey="week" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: "#9aa0a6", fontSize: 10, fontWeight: "bold" }}
+                  tickFormatter={(v) => `W${v}`} 
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: "#9aa0a6", fontSize: 10 }}
+                  domain={[0.4, 1.0]}
+                  width={25}
+                />
+                <Tooltip {...googleTooltip} />
+                <ReferenceLine 
+                  y={0.8} 
+                  stroke="#dadce0" 
+                  strokeDasharray="4 4" 
+                  label={{ value: "GOAL", position: "insideRight", fill: "#dadce0", fontSize: 10, fontWeight: "bold" }} 
+                />
+                <Line
+                  type="monotone"
+                  dataKey="speed"
+                  stroke="#1a73e8"
+                  strokeWidth={4}
+                  dot={{ r: 6, fill: "#1a73e8", strokeWidth: 3, stroke: "#fff" }}
+                  activeDot={{ r: 8, strokeWidth: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* ── Weekly Pill Carousel ── */}
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+          {weeklyProgress.map((wp) => (
+            <div
+              key={wp.week}
+              className="bg-white min-w-[100px] rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col items-center"
+            >
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Week {wp.week}</span>
+              <span className={`text-xl font-bold mt-1 ${wp.symmetry >= 80 ? 'text-blue-600' : 'text-gray-900'}`}>
+                {wp.symmetry}%
+              </span>
+              <span className="text-[8px] font-bold text-gray-300 uppercase">Symmetry</span>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* DURATION */}
-        <div className="hidden lg:block text-center">
-          <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-1">Duration</p>
-          <p className="text-sm font-black text-duo-text italic">{session.duration}</p>
+        {/* ── Session List ── */}
+        <SectionTitle>Recent Activity</SectionTitle>
+
+        <div className="space-y-3">
+          {sessionHistory.map((session) => {
+            const isExpanded = expandedId === session.id;
+            return (
+              <div
+                key={session.id}
+                className={`bg-white rounded-[24px] border transition-all duration-300 ${
+                  isExpanded ? "border-blue-200 shadow-lg shadow-blue-50" : "border-gray-100 shadow-sm"
+                }`}
+                onClick={() => setExpandedId(isExpanded ? null : session.id)}
+              >
+                {/* Header Row */}
+                <div className="p-5 flex justify-between items-center cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2">
+                        <path d="M12 2v20M17 5H7M17 19H7M2 12h20" strokeOpacity="0.2"/>
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-sm">{session.dateLabel}</h3>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                        {session.duration} • {session.steps} steps
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex items-center gap-4">
+                    <div>
+                      <div className="text-lg font-bold text-gray-900">{session.symmetry}%</div>
+                      <div className="text-[8px] font-bold text-gray-300 uppercase tracking-tighter">Symmetry</div>
+                    </div>
+                    <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dadce0" strokeWidth="3">
+                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* Badges Row */}
+                <div className="flex gap-2 px-5 pb-5 overflow-x-auto scrollbar-hide">
+                  <FallRiskBadge risk={session.fallRisk} />
+                  <Badge variant="blue">{session.speed} m/s</Badge>
+                  <Badge variant="gray">Pain {session.pain}/10</Badge>
+                </div>
+
+                {/* Expanded Details */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden border-t border-gray-50 bg-gray-50/30 rounded-b-[24px]"
+                    >
+                      <div className="p-6 grid grid-cols-2 gap-6">
+                        {[
+                          { label: "Stability Score", value: `${session.rehabScore}/100` },
+                          { label: "Ground Contact", value: `${session.gct} ms` },
+                          { label: "Left Stance", value: `${session.stanceLeft}%` },
+                          { label: "Right Stance", value: `${session.stanceRight}%` },
+                        ].map((item) => (
+                          <div key={item.label}>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{item.label}</p>
+                            <p className="text-sm font-bold text-gray-800">{item.value}</p>
+                          </div>
+                        ))}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/history/${session.id}`);
+                          }}
+                          className="col-span-2 w-full py-3 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-100 active:scale-95 transition-transform"
+                        >
+                          View Full Biometric Report
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
-
-        {/* SYMMETRY SCORE */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start border-t md:border-t-0 pt-4 md:pt-0">
-          <div className="text-right md:text-left">
-            <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-1">Avg Symmetry</p>
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${getSymmetryColor(session.symmetry)} shadow-[0_0_8px] shadow-current opacity-80`} />
-              <span className="text-lg font-black text-duo-text">{session.symmetry}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* TREND & RISK */}
-        <div className="flex items-center gap-8">
-          <div className="text-center">
-             <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-1">Risk Trend</p>
-             {session.trend === 'up' ? (
-               <div className="flex items-center text-duo-green gap-1 font-black text-xs">
-                 <TrendingUp size={14} /> <ArrowUpRight size={14} />
-               </div>
-             ) : (
-               <div className="flex items-center text-duo-red gap-1 font-black text-xs">
-                 <TrendingUp size={14} className="rotate-90" /> <ArrowDownRight size={14} />
-               </div>
-             )}
-          </div>
-
-          <ChevronRight className="text-duo-gray group-hover:text-duo-blue group-hover:translate-x-1 transition-all" size={24} />
-        </div>
-
-      </div>
-      </Link>
-    </motion.div>
+      </main>
+      <BottomNav />
+    </div>
   );
 }
